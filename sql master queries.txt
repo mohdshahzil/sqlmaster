@@ -1,0 +1,193 @@
+create or replace procedure factorial (x in number, y out number )
+is
+mult number := 1;
+begin 
+for i in 1..x loop
+mult := mult * i;
+end loop;
+y := mult;
+end;
+/
+
+
+declare
+x_val number := 5;
+result number;
+begin 
+factorial(x_val,result);
+dbms_output.put_line('factorial is : ' || result);
+end;
+/
+
+
+declare
+r_val number := 10;
+result number;
+function circle_area(x in number)
+return number
+is
+final number;
+begin
+final := 3.14*x*x;
+return final;
+end;
+begin
+result := circle_area(r_val);
+dbms_output.put_line('area is : ' || result);
+end;
+/
+
+declare
+first_val varchar2(20) := 'John';
+last_val varchar2(20) := 'Deere';
+result varchar2(50);
+function conc_words ( first in varchar2, last in varchar2)
+return varchar2
+is
+final varchar2(50);
+begin
+final := first || ' ' || last ;
+return final;
+end;
+begin
+result := conc_words(first_val,last_val);
+dbms_output.put_line(result);
+end;
+/
+
+create or replace procedure insertval(Employee_ID in number, First_Name in varchar2, Last_Name in varchar2, Salary in Number, Years_of_Service in number)
+is
+begin 
+insert into Employees values(Employee_ID, First_Name,Last_Name,Salary,Years_of_Service);
+commit;
+dbms_output.put_line('Records Inserted Successfully');
+exception
+when others then
+rollback;
+dbms_output.put_line('Failed to Insert Records');
+end;
+/
+
+declare
+total_rows number;
+begin 
+update customers
+set salary = salary + 500;
+if sql%found then
+total_rows:=sql%rowcount;
+dbms_output.put_line(total_rows);
+elsif sql%notfound then
+dbms_output.put_line(total_rows);
+end if;
+end;
+/
+
+declare 
+c_id customers.id%type;
+c_name customers.name%type;
+c_age customers.age%type;
+c_address customers.address%type;
+cursor c_customers is select id,name,address from customers;
+begin 
+open c_customers;
+loop fetch c_customers into c_id,c_name,c_address;
+exit when c_customers%notfound;
+dbms_output.put_line(c_id || ' ' || c_name);
+end loop;
+close c_customers;
+end;
+/
+
+
+declare
+c_empid Employee.Emp_ID%type;
+c_empname Employee.Emp_name%type;
+c_empsalary Employee.Emp_salary%type;
+total_salary number := 0;
+cursor c_employee is select Emp_ID, Emp_name, Emp_salary from Employee;
+begin 
+open c_employee;
+loop
+fetch c_employee into c_empid, c_empname, c_empsalary;
+exit when c_employee%notfound;
+total_salary := total_salary + c_empsalary;
+end loop;
+dbms_output.put_line(total_salary);
+close c_employee;
+end;
+/
+
+
+
+declare
+c_empid Employee.Emp_ID%type;
+c_empname Employee.Emp_name%type;
+c_empsalary Employee.Emp_salary%type;
+cursor c_employee is select Emp_ID, Emp_name, Emp_salary from Employee;
+begin
+open c_employee;
+loop
+fetch c_employee into c_empid, c_empname, c_empsalary;
+exit when c_employee%notfound;
+c_empsalary := c_empsalary * 1.1;
+update Employee
+set Emp_Salary = c_empsalary;
+end loop;
+commit;
+close c_employee;
+end;
+/
+
+
+
+declare
+c_empid Employee.Emp_ID%type;
+c_empname Employee.Emp_name%type;
+c_empsalary Employee.Emp_salary%type;
+cursor c_employee is select Emp_ID, Emp_name, Emp_salary from Employee;
+begin
+open c_employee;
+loop
+fetch c_employee into c_empid, c_empname, c_empsalary;
+delete from Employee where Emp_ID = c_empid;
+end loop;
+close c_employee;
+end;
+/
+
+
+create or replace trigger salary_changes
+before insert or update or delete on customers
+for each row
+when(new.ID>0)
+declare
+sal_diff number;
+begin 
+sal_diff := :new.salary - :old.salary;
+dbms_output.put_line('old salary ' || :old.salary);
+dbms_output.put_line('new salary ' || :new.salary);
+dbms_output.put_line('salary difference ' || sal_diff);
+end;
+/
+
+create or replace trigger generate_employee_id
+before insert on customers
+for each row
+begin
+select max(ID) + 1 into :new.ID from customers;
+end;
+/
+
+create or replace trigger generate_employee_id
+before insert on customers
+for each row
+begin
+select max(ID) + 1 into :new.ID from customers;
+end;
+/
+
+CREATE OR REPLACE TRIGGER validate_salary_rangeBEFORE INSERT OR UPDATE ON employeesFOR EACH ROWBEGINIF :NEW.emp_salary< 1000 OR :NEW.emp_salary > 10000 THENRAISE_APPLICATION_ERROR(-20001, 'Salary must be between 1000 and 10000.');END IF;END;/
+
+
+
+
